@@ -1,0 +1,37 @@
+# Step 3: Multi-Master with Spock Active-Active Replication (Killercoda)
+# -----------------------------------------------------------------------
+# Adds a second node (n2) to enable Spock active-active replication
+# between n1 and n2. Sized for Killercoda's 4GB memory constraint:
+# n1 has 2 instances (primary + 1 replica), n2 has 1 instance.
+#
+# Upgrade from Step 2:
+#   helm upgrade pgedge pgedge/pgedge -f step3-multi-master.yaml
+
+pgEdge:
+  appName: pgedge
+  nodes:
+    - name: n1
+      hostname: pgedge-n1-rw
+      clusterSpec:
+        instances: 2
+        postgresql:
+          synchronous:
+            method: any
+            number: 1
+            dataDurability: required
+    - name: n2
+      hostname: pgedge-n2-rw
+      bootstrap:
+        mode: spock
+        sourceNode: n1
+  clusterSpec:
+    instances: 1
+    storage:
+      size: 512Mi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi

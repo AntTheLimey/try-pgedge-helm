@@ -1,0 +1,25 @@
+# Step 1: Single Primary Node (Killercoda)
+# ------------------------------------------
+# Starting point of the progressive tutorial, sized for Killercoda's
+# constrained 4GB environment. Deploys a single CNPG cluster (n1) with
+# 1 instance and 512Mi storage.
+#
+# Install:
+#   helm install pgedge pgedge/pgedge -f step1-single-primary.yaml
+
+pgEdge:
+  appName: pgedge
+  nodes:
+    - name: n1
+      hostname: pgedge-n1-rw
+  clusterSpec:
+    instances: 1
+    storage:
+      size: 512Mi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi

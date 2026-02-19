@@ -1,0 +1,33 @@
+{
+  "title": "pgEdge Distributed Postgres on Kubernetes",
+  "description": "Deploy pgEdge step-by-step: single primary → HA with replicas → multi-master active-active replication",
+  "details": {
+    "intro": {
+      "text": "intro/text.md",
+      "background": "intro/background.sh",
+      "foreground": "intro/foreground.sh"
+    },
+    "steps": [
+      { "title": "Inspect Your Environment", "text": "step1/text.md", "verify": "step1/verify.sh" },
+      { "title": "Deploy a Single Primary", "text": "step2/text.md", "verify": "step2/verify.sh" },
+      { "title": "Scale with Read Replicas", "text": "step3/text.md", "verify": "step3/verify.sh" },
+      { "title": "Go Multi-Master", "text": "step4/text.md", "verify": "step4/verify.sh" },
+      { "title": "Prove Replication", "text": "step5/text.md", "verify": "step5/verify.sh" },
+      { "title": "Explore & Next Steps", "text": "step6/text.md" }
+    ],
+    "finish": {
+      "text": "finish/text.md"
+    },
+    "assets": {
+      "host01": [
+        { "file": "step1-single-primary.yaml", "target": "/root" },
+        { "file": "step2-with-replicas.yaml", "target": "/root" },
+        { "file": "step3-multi-master.yaml", "target": "/root" },
+        { "file": "wait-background.sh", "target": "/usr/local/bin", "chmod": "+x" }
+      ]
+    }
+  },
+  "backend": {
+    "imageid": "kubernetes-kubeadm-1node-4GB"
+  }
+}

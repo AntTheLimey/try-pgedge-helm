@@ -1,0 +1,32 @@
+# Step 2: Add Read Replicas (Killercoda)
+# ----------------------------------------
+# Upgrades the single primary to a 2-instance cluster (1 primary + 1 read replica)
+# with synchronous replication enabled. Uses 2 instances instead of 3 to fit
+# within Killercoda's 4GB memory constraint.
+#
+# Upgrade from Step 1:
+#   helm upgrade pgedge pgedge/pgedge -f step2-with-replicas.yaml
+
+pgEdge:
+  appName: pgedge
+  nodes:
+    - name: n1
+      hostname: pgedge-n1-rw
+      clusterSpec:
+        instances: 2
+        postgresql:
+          synchronous:
+            method: any
+            number: 1
+            dataDurability: required
+  clusterSpec:
+    instances: 1
+    storage:
+      size: 512Mi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
