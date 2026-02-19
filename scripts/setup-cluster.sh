@@ -65,7 +65,9 @@ echo "=== Setting up Kubernetes cluster ==="
 # Check prerequisites
 for cmd in kind kubectl helm; do
   if ! command -v "$cmd" &>/dev/null; then
-    echo "Error: $cmd is not installed. Please install it first."
+    echo "Error: $cmd is not installed."
+    echo "  Run the install script which will install it automatically:"
+    echo "  curl -fsSL https://raw.githubusercontent.com/AntTheLimey/try-pgedge-helm/main/install.sh | bash"
     exit 1
   fi
 done

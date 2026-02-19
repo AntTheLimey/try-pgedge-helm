@@ -37,7 +37,7 @@ Or open `WALKTHROUGH.md` in the editor — each code block has a **Run** button 
 
 ### Option 3: Run Locally
 
-Requirements: Docker, kind, kubectl, Helm
+Requirements: Docker and git. The install script will auto-install kind, kubectl, and Helm if missing.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/AntTheLimey/try-pgedge-helm/main/install.sh | bash
