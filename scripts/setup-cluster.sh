@@ -92,6 +92,13 @@ kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/
 echo "Waiting for CNPG operator..."
 wait_for_deployment "cnpg-system" "-l app.kubernetes.io/name=cloudnative-pg" "CNPG operator"
 
+# Install cnpg kubectl plugin if missing
+if ! kubectl cnpg version &>/dev/null; then
+  echo ""
+  echo "Installing cnpg kubectl plugin..."
+  curl -sSfL https://github.com/cloudnative-pg/cloudnative-pg/raw/main/hack/install-cnpg-plugin.sh | sudo sh -s -- -b /usr/local/bin
+fi
+
 echo ""
 echo "Adding pgEdge Helm repo..."
 helm repo add pgedge https://pgedge.github.io/charts 2>/dev/null || true
