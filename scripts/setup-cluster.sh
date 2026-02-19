@@ -42,7 +42,7 @@ wait_for_deployment() {
     fi
 
     echo ""
-    read -rp "  Retry? [Y/n] " answer
+    read -rp "  Retry? [Y/n] " answer </dev/tty
     case "${answer:-y}" in
       [nN]*) echo "Aborting."; exit 1 ;;
     esac

@@ -34,7 +34,7 @@ prompt_run() {
   local cmd="$1"
   show_cmd "$cmd"
   echo ""
-  read -rp "  Press Enter to run..."
+  read -rp "  Press Enter to run..." </dev/tty
   echo ""
   eval "$cmd"
   echo ""
@@ -42,7 +42,7 @@ prompt_run() {
 
 prompt_continue() {
   echo ""
-  read -rp "  Press Enter to continue..."
+  read -rp "  Press Enter to continue..." </dev/tty
   echo ""
 }
 
