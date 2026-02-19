@@ -12,11 +12,12 @@
     "vscode": {
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
-        "workbench.startupEditor": "readme"
+        "workbench.startupEditor": "none"
       },
       "extensions": [
         "stateful.runme"
       ]
     }
-  }
+  },
+  "postAttachCommand": "bash -c 'if [ ! -f /tmp/.guide-launched ]; then touch /tmp/.guide-launched; ./guide.sh; fi'"
 }
