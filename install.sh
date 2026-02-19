@@ -16,23 +16,35 @@ case "$ARCH" in
   *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
 esac
 
-# Hard prerequisites — these require system-level installation
-for cmd in git docker; do
-  if ! command -v "$cmd" &>/dev/null; then
-    echo "Error: $cmd is not installed."
-    case "$cmd" in
-      git)    echo "  Install: https://git-scm.com" ;;
-      docker) echo "  Install: https://docs.docker.com/get-docker/" ;;
-    esac
+# Detect existing Kubernetes cluster — if kubectl can reach one, Docker/kind aren't needed
+EXISTING_CLUSTER=false
+if command -v kubectl &>/dev/null && kubectl cluster-info &>/dev/null 2>&1; then
+  EXISTING_CLUSTER=true
+  echo "Detected existing Kubernetes cluster — Docker and kind are not required."
+  echo ""
+fi
+
+# Hard prerequisites
+if ! command -v git &>/dev/null; then
+  echo "Error: git is not installed."
+  echo "  Install: https://git-scm.com"
+  exit 1
+fi
+
+if [ "$EXISTING_CLUSTER" = false ]; then
+  if ! command -v docker &>/dev/null; then
+    echo "Error: Docker is not installed and no existing Kubernetes cluster was detected."
+    echo "  Either install Docker: https://docs.docker.com/get-docker/"
+    echo "  Or configure kubectl to connect to an existing cluster."
     exit 1
   fi
-done
 
-# Check Docker is actually running
-if ! docker info &>/dev/null; then
-  echo "Error: Docker is installed but not running."
-  echo "  Please start Docker and try again."
-  exit 1
+  # Check Docker is actually running
+  if ! docker info &>/dev/null; then
+    echo "Error: Docker is installed but not running."
+    echo "  Please start Docker and try again."
+    exit 1
+  fi
 fi
 
 # Auto-install missing Kubernetes tooling
@@ -62,8 +74,14 @@ install_helm() {
   echo "  Installed Helm $(helm version --short)"
 }
 
+# Only auto-install kind when no existing cluster
+TOOLS=(kubectl helm)
+if [ "$EXISTING_CLUSTER" = false ]; then
+  TOOLS=(kind kubectl helm)
+fi
+
 MISSING=()
-for cmd in kind kubectl helm; do
+for cmd in "${TOOLS[@]}"; do
   if ! command -v "$cmd" &>/dev/null; then
     MISSING+=("$cmd")
   fi
@@ -91,4 +109,5 @@ else
 fi
 
 cd "$DIR"
+export EXISTING_CLUSTER
 exec ./guide.sh

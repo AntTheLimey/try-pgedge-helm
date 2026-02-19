@@ -101,17 +101,35 @@ prompt_continue
 header "Step 1: Set Up Kubernetes Cluster"
 # ============================================================
 
-explain "First we need a Kubernetes cluster with three components:"
-echo ""
-explain "  - ${BOLD}kind${RESET}             Local K8s cluster running in Docker"
-explain "  - ${BOLD}cert-manager${RESET}     Manages TLS certificates for secure replication"
-explain "  - ${BOLD}CloudNativePG${RESET}    Operator that manages PostgreSQL as K8s resources"
+CLUSTER_MODE_FILE="$(cd "$(dirname "$0")" && pwd)/.cluster-mode"
+
+# Detect if we'll be using an existing cluster (before setup-cluster.sh writes the marker)
+if [ "${EXISTING_CLUSTER:-}" = "true" ] || \
+   (command -v kubectl &>/dev/null && kubectl cluster-info &>/dev/null 2>&1 && \
+    ! command -v kind &>/dev/null); then
+  explain "Your Kubernetes cluster is already running. We'll install two operators:"
+  echo ""
+  explain "  - ${BOLD}cert-manager${RESET}     Manages TLS certificates for secure replication"
+  explain "  - ${BOLD}CloudNativePG${RESET}    Operator that manages PostgreSQL as K8s resources"
+else
+  explain "First we need a Kubernetes cluster with three components:"
+  echo ""
+  explain "  - ${BOLD}kind${RESET}             Local K8s cluster running in Docker"
+  explain "  - ${BOLD}cert-manager${RESET}     Manages TLS certificates for secure replication"
+  explain "  - ${BOLD}CloudNativePG${RESET}    Operator that manages PostgreSQL as K8s resources"
+fi
 echo ""
 explain "This takes about 2 minutes. The script handles it automatically."
 
 prompt_continue
 
 bash "$(dirname "$0")/scripts/setup-cluster.sh"
+
+# Read cluster mode from marker file written by setup-cluster.sh
+CLUSTER_MODE="kind"
+if [ -f "$CLUSTER_MODE_FILE" ]; then
+  CLUSTER_MODE=$(cat "$CLUSTER_MODE_FILE")
+fi
 
 echo ""
 info "Cluster is ready with all operators installed."
@@ -305,22 +323,54 @@ echo "    https://www.pgedge.com"
 echo ""
 
 echo ""
-read -rp "  Would you like to clean up the demo environment? [y/N] " answer </dev/tty
-case "${answer:-n}" in
-  [yY]*)
-    echo ""
-    echo -e "  ${CYAN}Uninstalling Helm release...${RESET}"
-    helm uninstall pgedge 2>/dev/null || true
-    echo -e "  ${CYAN}Deleting kind cluster...${RESET}"
-    kind delete cluster --name pgedge-demo 2>/dev/null || true
-    echo ""
-    info "All cleaned up."
-    ;;
-  *)
-    echo ""
-    echo -e "  ${BOLD}To clean up later:${RESET}"
-    echo "    helm uninstall pgedge"
-    echo "    kind delete cluster --name pgedge-demo"
-    ;;
-esac
+if [ "${CLUSTER_MODE:-kind}" = "existing" ]; then
+  read -rp "  Would you like to clean up the demo resources? [y/N] " answer </dev/tty
+  case "${answer:-n}" in
+    [yY]*)
+      echo ""
+      echo -e "  ${CYAN}Uninstalling Helm release...${RESET}"
+      helm uninstall pgedge 2>/dev/null || true
+      echo ""
+      read -rp "  Also remove CNPG operator and cert-manager? [y/N] " answer2 </dev/tty
+      case "${answer2:-n}" in
+        [yY]*)
+          echo -e "  ${CYAN}Removing CloudNativePG operator...${RESET}"
+          kubectl delete -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/releases/cnpg-1.25.1.yaml 2>/dev/null || true
+          echo -e "  ${CYAN}Removing cert-manager...${RESET}"
+          kubectl delete -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml 2>/dev/null || true
+          ;;
+      esac
+      rm -f "$CLUSTER_MODE_FILE"
+      echo ""
+      info "All cleaned up."
+      ;;
+    *)
+      echo ""
+      echo -e "  ${BOLD}To clean up later:${RESET}"
+      echo "    helm uninstall pgedge"
+      echo "    kubectl delete -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/releases/cnpg-1.25.1.yaml"
+      echo "    kubectl delete -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml"
+      ;;
+  esac
+else
+  read -rp "  Would you like to clean up the demo environment? [y/N] " answer </dev/tty
+  case "${answer:-n}" in
+    [yY]*)
+      echo ""
+      echo -e "  ${CYAN}Uninstalling Helm release...${RESET}"
+      helm uninstall pgedge 2>/dev/null || true
+      echo -e "  ${CYAN}Deleting kind cluster...${RESET}"
+      kind delete cluster --name pgedge-demo 2>/dev/null || true
+      rm -f "$CLUSTER_MODE_FILE"
+      echo ""
+      info "All cleaned up."
+      ;;
+    *)
+      echo ""
+      echo -e "  ${BOLD}To clean up later:${RESET}"
+      echo "    helm uninstall pgedge"
+      echo "    kind delete cluster --name pgedge-demo"
+      ;;
+  esac
+fi
 echo ""

@@ -43,6 +43,18 @@ Requirements: Docker and git. The install script will auto-install kind, kubectl
 curl -fsSL https://raw.githubusercontent.com/AntTheLimey/try-pgedge-helm/main/install.sh | bash
 ```
 
+### Option 4: Use Your Own Cluster
+
+If you already have a Kubernetes cluster (EKS, GKE, AKS, bare metal, etc.) with `kubectl` configured, Docker and kind are **not required**. The install script detects your cluster automatically and only installs the operators (cert-manager and CloudNativePG).
+
+```bash
+# Verify kubectl can reach your cluster
+kubectl cluster-info
+
+# Then run the same install script — it skips Docker/kind automatically
+curl -fsSL https://raw.githubusercontent.com/AntTheLimey/try-pgedge-helm/main/install.sh | bash
+```
+
 ## Architecture
 
 ```

@@ -1,10 +1,21 @@
 #!/bin/bash
 set -euo pipefail
 
-# Creates a kind cluster and installs CNPG operator + cert-manager.
-# Used by guide.sh for Codespace/local environments.
+# Sets up a Kubernetes cluster and installs CNPG operator + cert-manager.
+# If an existing cluster is detected (via EXISTING_CLUSTER env var or kubectl),
+# skips kind entirely and installs operators on the current cluster.
 
 CLUSTER_NAME="${1:-pgedge-demo}"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+# --- Detect existing Kubernetes cluster ---
+USE_EXISTING=false
+if [ "${EXISTING_CLUSTER:-}" = "true" ]; then
+  USE_EXISTING=true
+elif command -v kubectl &>/dev/null && kubectl cluster-info &>/dev/null 2>&1; then
+  # No EXISTING_CLUSTER env var, but kubectl can reach a cluster
+  USE_EXISTING=true
+fi
 
 # Wait for a deployment to become available, with retry on failure.
 # On timeout, checks for image pull errors and offers to retry.
@@ -62,22 +73,48 @@ wait_for_deployment() {
 
 echo "=== Setting up Kubernetes cluster ==="
 
-# Check prerequisites
-for cmd in kind kubectl helm; do
-  if ! command -v "$cmd" &>/dev/null; then
-    echo "Error: $cmd is not installed."
-    echo "  Run the install script which will install it automatically:"
-    echo "  curl -fsSL https://raw.githubusercontent.com/AntTheLimey/try-pgedge-helm/main/install.sh | bash"
-    exit 1
-  fi
-done
-
-# Create kind cluster if it doesn't exist
-if kind get clusters 2>/dev/null | grep -q "^${CLUSTER_NAME}$"; then
-  echo "Kind cluster '${CLUSTER_NAME}' already exists, reusing it."
+# Check prerequisites — only require kind when creating a local cluster
+if [ "$USE_EXISTING" = true ]; then
+  for cmd in kubectl helm; do
+    if ! command -v "$cmd" &>/dev/null; then
+      echo "Error: $cmd is not installed."
+      echo "  Run the install script which will install it automatically:"
+      echo "  curl -fsSL https://raw.githubusercontent.com/AntTheLimey/try-pgedge-helm/main/install.sh | bash"
+      exit 1
+    fi
+  done
 else
-  echo "Creating kind cluster '${CLUSTER_NAME}'..."
-  kind create cluster --name "$CLUSTER_NAME" --wait 60s
+  for cmd in kind kubectl helm; do
+    if ! command -v "$cmd" &>/dev/null; then
+      echo "Error: $cmd is not installed."
+      echo "  Run the install script which will install it automatically:"
+      echo "  curl -fsSL https://raw.githubusercontent.com/AntTheLimey/try-pgedge-helm/main/install.sh | bash"
+      exit 1
+    fi
+  done
+fi
+
+# Set up cluster
+if [ "$USE_EXISTING" = true ]; then
+  echo "Detected existing Kubernetes cluster:"
+  echo ""
+  kubectl cluster-info 2>/dev/null | head -2
+  echo ""
+  echo "This will install cert-manager and CloudNativePG operator on your cluster."
+  read -rp "Continue? [Y/n] " answer </dev/tty
+  case "${answer:-y}" in
+    [nN]*) echo "Aborted."; exit 1 ;;
+  esac
+  echo "existing" > "${REPO_ROOT}/.cluster-mode"
+else
+  # Create kind cluster if it doesn't exist
+  if kind get clusters 2>/dev/null | grep -q "^${CLUSTER_NAME}$"; then
+    echo "Kind cluster '${CLUSTER_NAME}' already exists, reusing it."
+  else
+    echo "Creating kind cluster '${CLUSTER_NAME}'..."
+    kind create cluster --name "$CLUSTER_NAME" --wait 60s
+  fi
+  echo "kind" > "${REPO_ROOT}/.cluster-mode"
 fi
 
 echo ""
