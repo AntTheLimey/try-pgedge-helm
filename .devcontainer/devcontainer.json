@@ -19,5 +19,5 @@
       ]
     }
   },
-  "postAttachCommand": "bash -c 'code WALKTHROUGH.md 2>/dev/null; if [ ! -f /tmp/.guide-launched ]; then touch /tmp/.guide-launched; ./guide.sh; fi'"
+  "postAttachCommand": "code WALKTHROUGH.md 2>/dev/null || true"
 }
