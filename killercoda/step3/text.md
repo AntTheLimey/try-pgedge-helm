@@ -22,12 +22,12 @@ This is a `helm upgrade`, not a new install. The existing primary stays running 
 helm upgrade pgedge pgedge/pgedge -f ~/step2-with-replicas.yaml
 ```
 
-## Watch the replica come up
+## Wait for the replica
 
-This command watches pods in real time. Wait until you see a second pod (with a `-2` suffix) show `1/1 Running`, then press `Ctrl+C` to stop:
+A second pod is spinning up as a synchronous replica. This waits until it's ready:
 
 ```bash
-kubectl get pods -w
+kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n1 --timeout=180s
 ```
 
 ## Check the cluster status

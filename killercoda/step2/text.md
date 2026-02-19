@@ -12,10 +12,10 @@ helm install pgedge pgedge/pgedge -f ~/step1-single-primary.yaml
 
 ## Wait for the cluster to be ready
 
-The CNPG operator creates a PostgreSQL pod. The next command watches pods in real time — it will keep running until you stop it. Run it, wait until you see a pod show `1/1 Running`, then press `Ctrl+C` to stop watching:
+The CNPG operator is creating a PostgreSQL pod. This command waits until it's ready:
 
 ```bash
-kubectl get pods -w
+kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n1 --timeout=180s
 ```
 
 ## Check the cluster status

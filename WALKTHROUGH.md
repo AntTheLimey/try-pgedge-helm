@@ -33,7 +33,7 @@ Start with one pgEdge node running a single Postgres instance:
 helm install pgedge pgedge/pgedge -f values/step1-single-primary.yaml
 ```
 
-Wait for it to be ready, then check the status:
+The CNPG operator is creating a PostgreSQL pod. Wait for it to be ready, then check the status:
 
 ```bash
 kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n1 --timeout=180s
@@ -57,7 +57,7 @@ Upgrade to add a synchronous read replica (instances: 1 → 2):
 helm upgrade pgedge pgedge/pgedge -f values/step2-with-replicas.yaml
 ```
 
-Wait for the replica:
+A second pod is spinning up as a synchronous replica. Wait for it to be ready:
 
 ```bash
 kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n1 --timeout=180s
@@ -81,7 +81,7 @@ Add a second pgEdge node with Spock active-active replication:
 helm upgrade pgedge pgedge/pgedge -f values/step3-multi-master.yaml
 ```
 
-Wait for both nodes:
+The CNPG operator is creating a new cluster for n2, and the pgEdge init-spock job will wire up Spock subscriptions. Wait for both clusters:
 
 ```bash
 kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n1 --timeout=180s
@@ -128,7 +128,7 @@ INSERT INTO cities (id, name, country) VALUES
 Read on n2 — data should already be there:
 
 ```bash
-kubectl cnpg psql pgedge-n2 -- -d app -c "SELECT * FROM cities;"
+sleep 2 && kubectl cnpg psql pgedge-n2 -- -d app -c "SELECT * FROM cities;"
 ```
 
 Write on n2:
@@ -143,7 +143,7 @@ INSERT INTO cities (id, name, country) VALUES
 Read back on n1 — all 5 rows should be there:
 
 ```bash
-kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT * FROM cities ORDER BY id;"
+sleep 2 && kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT * FROM cities ORDER BY id;"
 ```
 
 ## Cleanup
