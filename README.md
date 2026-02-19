@@ -19,13 +19,13 @@ Each step is a `helm upgrade`, so you watch the cluster evolve.
 
 Zero install — runs entirely in your browser on a pre-configured Kubernetes environment.
 
-[![Open in Killercoda](https://img.shields.io/badge/Open%20in-Killercoda-blue?logo=kubernetes)](https://killercoda.com/pgedge/scenario/try-pgedge-helm)
+[![Open in Killercoda](https://img.shields.io/badge/Open%20in-Killercoda-blue?logo=kubernetes)](https://killercoda.com/antthelimey/scenario/killercoda)
 
 ### Option 2: GitHub Codespace
 
 Full development environment with VS Code, kubectl, Helm, and kind.
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/pgedge/try-pgedge-helm?quickstart=1)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/AntTheLimey/try-pgedge-helm?quickstart=1)
 
 Once the Codespace is ready, run:
 
@@ -40,7 +40,7 @@ Or open `WALKTHROUGH.md` with the Runme extension for a click-through experience
 Requirements: Docker, kind, kubectl, Helm
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/pgedge/try-pgedge-helm/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/AntTheLimey/try-pgedge-helm/main/install.sh | bash
 ```
 
 ## Architecture

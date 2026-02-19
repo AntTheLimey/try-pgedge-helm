@@ -12,7 +12,7 @@ You've successfully deployed a **distributed, active-active PostgreSQL cluster**
 ## Keep exploring
 
 - **Try in a Codespace** — Get a full development environment with VS Code:
-  [github.com/pgedge/try-pgedge-helm](https://github.com/pgedge/try-pgedge-helm)
+  [github.com/AntTheLimey/try-pgedge-helm](https://github.com/AntTheLimey/try-pgedge-helm)
 
 - **pgEdge Helm Chart** — Full documentation and configuration reference:
   [github.com/pgedge/pgedge-helm](https://github.com/pgedge/pgedge-helm)
