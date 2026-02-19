@@ -35,6 +35,7 @@ prompt_run() {
   show_cmd "$cmd"
   echo ""
   read -rp "  Press Enter to run..." </dev/tty
+  echo -e "  ${CYAN}⏳ Running...${RESET}"
   echo ""
   eval "$cmd" 2> >(grep -v "Unable to use a TTY" >&2)
   echo ""
@@ -46,9 +47,35 @@ prompt_continue() {
   echo ""
 }
 
+SPINNER_PID=""
+start_spinner() {
+  local msg="$1"
+  local chars='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+  (
+    while true; do
+      for (( i=0; i<${#chars}; i++ )); do
+        printf "\r  \033[0;36m%s\033[0m %s" "${chars:$i:1}" "$msg"
+        sleep 0.1
+      done
+    done
+  ) &
+  SPINNER_PID=$!
+}
+
+stop_spinner() {
+  if [ -n "$SPINNER_PID" ]; then
+    kill "$SPINNER_PID" 2>/dev/null
+    wait "$SPINNER_PID" 2>/dev/null || true
+    printf "\r\033[K"
+    SPINNER_PID=""
+  fi
+}
+
 info() {
   echo -e "  ${GREEN}$1${RESET}"
 }
+
+trap 'stop_spinner' EXIT
 
 VALUES_DIR="$(cd "$(dirname "$0")" && pwd)/values"
 
@@ -108,10 +135,11 @@ echo -e "      instances: 1${RESET}"
 
 prompt_run "helm install pgedge pgedge/pgedge -f ${VALUES_DIR}/step1-single-primary.yaml"
 
-explain "The CNPG operator is now creating a PostgreSQL pod. Let's wait"
-explain "for it to be ready..."
+explain "The CNPG operator is now creating a PostgreSQL pod."
 echo ""
+start_spinner "Waiting for pod to be ready..."
 kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n1 --timeout=180s 2>/dev/null || true
+stop_spinner
 echo ""
 
 explain "Now let's check the cluster status. This shows instance count,"
@@ -145,7 +173,9 @@ prompt_run "helm upgrade pgedge pgedge/pgedge -f ${VALUES_DIR}/step2-with-replic
 
 explain "A second pod is spinning up as a synchronous replica..."
 echo ""
+start_spinner "Waiting for replica to be ready..."
 kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n1 --timeout=180s 2>/dev/null || true
+stop_spinner
 echo ""
 
 explain "Let's check the status — you should see 2 instances now,"
@@ -181,8 +211,12 @@ prompt_run "helm upgrade pgedge pgedge/pgedge -f ${VALUES_DIR}/step3-multi-maste
 explain "The CNPG operator is creating a new cluster for n2, and the"
 explain "pgEdge init-spock job will wire up Spock subscriptions..."
 echo ""
+start_spinner "Waiting for n1 pods..."
 kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n1 --timeout=180s 2>/dev/null || true
+stop_spinner
+start_spinner "Waiting for n2 pods..."
 kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n2 --timeout=180s 2>/dev/null || true
+stop_spinner
 echo ""
 
 explain "Let's check both clusters:"
@@ -226,7 +260,9 @@ INSERT INTO cities (id, name, country) VALUES
 explain "Now read on n2 — these rows were written on n1 but should"
 explain "already be replicated to n2:"
 
+start_spinner "Waiting for replication..."
 sleep 2
+stop_spinner
 prompt_run "kubectl cnpg psql pgedge-n2 -- -d app -c 'SELECT * FROM cities;'"
 
 explain "Now write on n2 — the other direction:"
@@ -239,7 +275,9 @@ INSERT INTO cities (id, name, country) VALUES
 explain "And read everything back on n1. All 5 rows should be here —"
 explain "3 written locally and 2 replicated from n2:"
 
+start_spinner "Waiting for replication..."
 sleep 2
+stop_spinner
 prompt_run "kubectl cnpg psql pgedge-n1 -- -d app -c 'SELECT * FROM cities ORDER BY id;'"
 
 info "All 5 cities on both nodes — bidirectional active-active replication confirmed!"
