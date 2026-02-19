@@ -10,13 +10,7 @@ The values file defines just one node (`n1`) with 1 instance:
 helm install pgedge pgedge/pgedge -f ~/step1-single-primary.yaml
 ```
 
-## Wait for the cluster to be ready
-
-The CNPG operator is creating a PostgreSQL pod. This command waits until it's ready:
-
-```bash
-kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n1 --timeout=180s
-```
+The helm command takes about a minute — when it returns, the pod is ready. If you want to see what's happening while it runs, open **Tab 2** and run `kubectl get pods -w` to watch the pod come up. Switch back to **Tab 1** to continue.
 
 ## Check the cluster status
 

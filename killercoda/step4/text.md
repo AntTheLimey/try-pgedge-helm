@@ -18,18 +18,11 @@ Key change: a second node `n2` is added to the `nodes` list with `bootstrap.mode
 helm upgrade pgedge pgedge/pgedge -f ~/step3-multi-master.yaml
 ```
 
-## Wait for both nodes
-
-The CNPG operator is creating a new cluster for n2, and the pgEdge init-spock job will wire up Spock subscriptions. Wait for both clusters:
-
-```bash
-kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n1 --timeout=180s
-kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n2 --timeout=180s
-```
+This upgrade takes a bit longer — the CNPG operator creates a new cluster for n2, and the pgEdge init-spock job wires up Spock subscriptions. If you want to watch, open **Tab 2** and run `kubectl get pods -w`. Switch back to **Tab 1** to continue.
 
 ## Check both clusters
 
-Each pgEdge node is its own CNPG cluster:
+When it finishes, both clusters are ready:
 
 ```bash
 kubectl cnpg status pgedge-n1
