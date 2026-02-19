@@ -33,7 +33,7 @@ Once the Codespace is ready, run:
 ./guide.sh
 ```
 
-Or open `WALKTHROUGH.md` with the Runme extension for a click-through experience.
+Or open `WALKTHROUGH.md` in the editor — each code block has a **Run** button you can click to execute it directly.
 
 ### Option 3: Run Locally
 

@@ -1,7 +1,7 @@
 # pgEdge Kubernetes Walkthrough
 
 Step-by-step guide to deploying distributed PostgreSQL on Kubernetes with pgEdge.
-Open this file with [Runme](https://runme.dev) for interactive execution, or follow along manually.
+Each code block below has a **Run** button — click it to execute the command directly in the terminal.
 
 ## Step 1: Set Up the Cluster
 
