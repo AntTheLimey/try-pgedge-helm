@@ -36,7 +36,7 @@ prompt_run() {
   echo ""
   read -rp "  Press Enter to run..." </dev/tty
   echo ""
-  eval "$cmd"
+  eval "$cmd" 2> >(grep -v "Unable to use a TTY" >&2)
   echo ""
 }
 
