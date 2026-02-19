@@ -257,12 +257,9 @@ INSERT INTO cities (id, name, country) VALUES
   (2, 'London', 'UK'),
   (3, 'Tokyo', 'Japan');\""
 
-explain "Now read on n2 — these rows were written on n1 but should"
-explain "already be replicated to n2:"
+explain "Now read on n2 — these rows were written on n1 but are"
+explain "already replicated to n2:"
 
-start_spinner "Waiting for replication..."
-sleep 2
-stop_spinner
 prompt_run "kubectl cnpg psql pgedge-n2 -- -d app -c 'SELECT * FROM cities;'"
 
 explain "Now write on n2 — the other direction:"
@@ -275,9 +272,6 @@ INSERT INTO cities (id, name, country) VALUES
 explain "And read everything back on n1. All 5 rows should be here —"
 explain "3 written locally and 2 replicated from n2:"
 
-start_spinner "Waiting for replication..."
-sleep 2
-stop_spinner
 prompt_run "kubectl cnpg psql pgedge-n1 -- -d app -c 'SELECT * FROM cities ORDER BY id;'"
 
 info "All 5 cities on both nodes — bidirectional active-active replication confirmed!"

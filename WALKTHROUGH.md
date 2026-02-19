@@ -128,7 +128,7 @@ INSERT INTO cities (id, name, country) VALUES
 Read on n2 — data should already be there:
 
 ```bash
-sleep 2 && kubectl cnpg psql pgedge-n2 -- -d app -c "SELECT * FROM cities;"
+kubectl cnpg psql pgedge-n2 -- -d app -c "SELECT * FROM cities;"
 ```
 
 Write on n2:
@@ -143,7 +143,7 @@ INSERT INTO cities (id, name, country) VALUES
 Read back on n1 — all 5 rows should be there:
 
 ```bash
-sleep 2 && kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT * FROM cities ORDER BY id;"
+kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT * FROM cities ORDER BY id;"
 ```
 
 ## Cleanup
