@@ -2,6 +2,9 @@
 # Waits for the background installer to finish.
 # Killercoda copies this to /usr/local/bin with +x via index.json assets.
 
+echo "Setting up your environment — this takes about 2 minutes..."
+echo ""
+
 spinner=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
 i=0
 while [ ! -f /tmp/.background-done ]; do
@@ -10,3 +13,6 @@ while [ ! -f /tmp/.background-done ]; do
   sleep 0.3
 done
 printf "\r  ✓ All components installed.         \n"
+
+echo ""
+echo "Environment is ready! Click 'Next' to continue."
