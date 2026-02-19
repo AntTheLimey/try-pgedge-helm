@@ -40,9 +40,7 @@ Or open `WALKTHROUGH.md` with the Runme extension for a click-through experience
 Requirements: Docker, kind, kubectl, Helm
 
 ```bash
-git clone https://github.com/pgedge/try-pgedge-helm.git
-cd try-pgedge-helm
-./guide.sh
+curl -fsSL https://raw.githubusercontent.com/pgedge/try-pgedge-helm/main/install.sh | bash
 ```
 
 ## Architecture
