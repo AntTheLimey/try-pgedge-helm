@@ -1,6 +1,6 @@
 # Scale with Read Replicas
 
-Now let's upgrade the deployment to add a **synchronous read replica**. This gives you high availability — if the primary fails, the replica can take over with zero data loss.
+Now let's upgrade the deployment to add a **synchronous read replica**. This gives you high availability — if the primary fails, the replica takes over with zero data loss.
 
 ## Review the changes
 
@@ -11,10 +11,12 @@ diff ~/step1-single-primary.yaml ~/step2-with-replicas.yaml
 ```
 
 Key changes:
-- `instances: 2` — adds a replica to node n1
+- `instances: 1` → `instances: 2` — adds a replica to node n1
 - Synchronous replication is configured with `dataDurability: required`
 
 ## Upgrade the release
+
+This is a `helm upgrade`, not a new install. The existing primary stays running while the replica is added:
 
 ```bash
 helm upgrade pgedge pgedge/pgedge -f ~/step2-with-replicas.yaml
@@ -30,21 +32,20 @@ Press `Ctrl+C` once you see both pods running. The new pod will have a `-2` suff
 
 ## Check the cluster status
 
+You should now see 2 instances — one primary and one standby with `(sync)` role:
+
 ```bash
 kubectl cnpg status pgedge-n1
 ```
 
-You should now see:
-- **Instances:** 2
-- **Ready instances:** 2
-- One primary and one replica with **synchronous** replication
-
 ## Verify replication is working
+
+This query shows the replication connection from the primary's perspective. Look for `sync_state = sync` or `quorum`:
 
 ```bash
 kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT client_addr, state, sync_state FROM pg_stat_replication;"
 ```
 
-You should see one row with `sync_state = sync`, confirming the replica is receiving changes synchronously.
+The replica is receiving all changes synchronously — every committed write is guaranteed to be on both instances before the transaction completes.
 
 **Next:** Let's add a second pgEdge node for active-active multi-master replication.

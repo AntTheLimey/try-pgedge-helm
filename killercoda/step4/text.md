@@ -1,6 +1,8 @@
 # Go Multi-Master
 
-This is where pgEdge shines. You'll add a **second pgEdge node** (`n2`) with **Spock active-active replication**. Both nodes can accept writes, and changes replicate bidirectionally.
+This is where pgEdge shines. You'll add a **second pgEdge node** (`n2`) with **Spock active-active replication**. Both nodes will accept writes, and changes replicate bidirectionally.
+
+Unlike the read replica in the previous step (which only accepts reads), both n1 and n2 are full read-write nodes.
 
 ## Review the changes
 
@@ -8,7 +10,7 @@ This is where pgEdge shines. You'll add a **second pgEdge node** (`n2`) with **S
 diff ~/step2-with-replicas.yaml ~/step3-multi-master.yaml
 ```
 
-Key change: a second node `n2` is added to the `nodes` list. The pgEdge Helm chart automatically configures Spock logical replication between n1 and n2.
+Key change: a second node `n2` is added to the `nodes` list with `bootstrap.mode: spock`, which tells the chart to set up Spock logical replication from n1 to n2 automatically.
 
 ## Upgrade the release
 
@@ -26,6 +28,8 @@ Press `Ctrl+C` once you see pods for both `pgedge-n1` and `pgedge-n2` in `Runnin
 
 ## Check both clusters
 
+Each pgEdge node is its own CNPG cluster:
+
 ```bash
 kubectl cnpg status pgedge-n1
 ```
@@ -36,7 +40,7 @@ kubectl cnpg status pgedge-n2
 
 ## Verify Spock replication
 
-Once both nodes are healthy, check the Spock subscription status:
+Once both nodes are healthy, check the Spock subscription status. Each node subscribes to the other — that's what makes it active-active:
 
 ```bash
 kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT * FROM spock.sub_show_status();"
@@ -46,7 +50,7 @@ kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT * FROM spock.sub_show_status();
 kubectl cnpg psql pgedge-n2 -- -d app -c "SELECT * FROM spock.sub_show_status();"
 ```
 
-Both should show subscriptions in a replicating state.
+Both should show subscriptions with status `replicating`.
 
 You now have a **distributed, active-active PostgreSQL cluster** running on Kubernetes. Both nodes accept reads and writes, with changes replicating automatically via Spock.
 

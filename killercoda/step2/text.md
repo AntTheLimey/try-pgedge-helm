@@ -1,8 +1,10 @@
 # Deploy a Single Primary
 
-Let's start simple: one pgEdge node with a single PostgreSQL instance.
+Let's start with the simplest possible deployment: one pgEdge node running a single PostgreSQL instance.
 
 ## Install the chart
+
+The values file defines just one node (`n1`) with 1 instance:
 
 ```bash
 helm install pgedge pgedge/pgedge -f ~/step1-single-primary.yaml
@@ -10,7 +12,7 @@ helm install pgedge pgedge/pgedge -f ~/step1-single-primary.yaml
 
 ## Wait for the cluster to be ready
 
-The CNPG operator will create a PostgreSQL cluster. Watch it come up:
+The CNPG operator creates a PostgreSQL pod. Watch it come up:
 
 ```bash
 kubectl get pods -w
@@ -19,6 +21,8 @@ kubectl get pods -w
 Press `Ctrl+C` once you see the pod in `Running` state (this usually takes about 60 seconds).
 
 ## Check the cluster status
+
+This shows instance count, replication state, and overall health:
 
 ```bash
 kubectl cnpg status pgedge-n1
@@ -31,7 +35,7 @@ You should see:
 
 ## Connect and verify
 
-The pgEdge chart creates a database called `app` with the Spock extension. Let's connect and confirm:
+The pgEdge chart creates a database called `app` with the Spock extension pre-installed. Let's connect and confirm it's working:
 
 ```bash
 kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT version();"

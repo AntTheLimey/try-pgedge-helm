@@ -25,13 +25,17 @@ INSERT INTO cities (id, name, country) VALUES
 
 ## Read on n2
 
-The data should already be there:
+These rows were written on n1 but should already be replicated to n2 via Spock. Give it a moment, then check:
 
 ```bash
-kubectl cnpg psql pgedge-n2 -- -d app -c "SELECT * FROM cities;"
+sleep 2 && kubectl cnpg psql pgedge-n2 -- -d app -c "SELECT * FROM cities;"
 ```
 
+You should see all 3 cities.
+
 ## Now write on n2
+
+This is the active-active part — n2 can accept writes too:
 
 ```bash
 kubectl cnpg psql pgedge-n2 -- -d app -c "
@@ -42,11 +46,13 @@ INSERT INTO cities (id, name, country) VALUES
 
 ## Read back on n1
 
+All 5 rows should be here — 3 written locally on n1 and 2 replicated from n2:
+
 ```bash
-kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT * FROM cities ORDER BY id;"
+sleep 2 && kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT * FROM cities ORDER BY id;"
 ```
 
-You should see all 5 cities — 3 inserted on n1 and 2 inserted on n2. This confirms **bidirectional active-active replication** is working.
+You should see all 5 cities. This confirms **bidirectional active-active replication** is working.
 
 ## Check replication status
 
