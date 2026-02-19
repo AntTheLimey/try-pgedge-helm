@@ -24,11 +24,11 @@ helm upgrade pgedge pgedge/pgedge -f ~/step2-with-replicas.yaml
 
 ## Watch the replica come up
 
+This command watches pods in real time. Wait until you see a second pod (with a `-2` suffix) show `1/1 Running`, then press `Ctrl+C` to stop:
+
 ```bash
 kubectl get pods -w
 ```
-
-Press `Ctrl+C` once you see both pods running. The new pod will have a `-2` suffix.
 
 ## Check the cluster status
 

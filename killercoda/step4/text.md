@@ -20,11 +20,11 @@ helm upgrade pgedge pgedge/pgedge -f ~/step3-multi-master.yaml
 
 ## Watch both nodes come up
 
+This command watches pods in real time. Wait until you see pods for both `pgedge-n1` and `pgedge-n2` in `Running` state, then press `Ctrl+C` to stop:
+
 ```bash
 kubectl get pods -w
 ```
-
-Press `Ctrl+C` once you see pods for both `pgedge-n1` and `pgedge-n2` in `Running` state.
 
 ## Check both clusters
 
