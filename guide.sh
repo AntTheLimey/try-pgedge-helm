@@ -266,12 +266,29 @@ echo "    kubectl cnpg psql pgedge-n2 -- -d app  # psql shell to n2"
 echo "    kubectl get pods -o wide             # all pods"
 echo "    helm get values pgedge               # current helm values"
 echo ""
-echo -e "  ${BOLD}Cleanup:${RESET}"
-echo "    helm uninstall pgedge"
-echo "    kind delete cluster --name pgedge-demo"
-echo ""
 echo -e "  ${BOLD}Learn more:${RESET}"
 echo "    https://github.com/pgedge/pgedge-helm"
 echo "    https://docs.pgedge.com"
 echo "    https://www.pgedge.com"
+echo ""
+
+echo ""
+read -rp "  Would you like to clean up the demo environment? [y/N] " answer </dev/tty
+case "${answer:-n}" in
+  [yY]*)
+    echo ""
+    echo -e "  ${CYAN}Uninstalling Helm release...${RESET}"
+    helm uninstall pgedge 2>/dev/null || true
+    echo -e "  ${CYAN}Deleting kind cluster...${RESET}"
+    kind delete cluster --name pgedge-demo 2>/dev/null || true
+    echo ""
+    info "All cleaned up."
+    ;;
+  *)
+    echo ""
+    echo -e "  ${BOLD}To clean up later:${RESET}"
+    echo "    helm uninstall pgedge"
+    echo "    kind delete cluster --name pgedge-demo"
+    ;;
+esac
 echo ""
