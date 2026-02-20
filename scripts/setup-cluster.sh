@@ -25,7 +25,7 @@ wait_for_deployment() {
   local label="$3"
 
   while true; do
-    if kubectl wait --for=condition=Available deployment ${selector} -n "$namespace" --timeout=120s 2>/dev/null; then
+    if kubectl wait --for=condition=Available deployment "${selector}" -n "$namespace" --timeout=120s 2>/dev/null; then
       return 0
     fi
 

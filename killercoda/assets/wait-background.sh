@@ -8,7 +8,7 @@ echo ""
 spinner=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
 i=0
 while [ ! -f /tmp/.background-done ]; do
-  printf "\r  ${spinner[$i]} Installing components..."
+  printf "\r  %s Installing components..." "${spinner[$i]}"
   i=$(( (i + 1) % ${#spinner[@]} ))
   sleep 0.3
 done
