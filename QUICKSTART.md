@@ -46,8 +46,8 @@ kubectl wait --for=condition=Available deployment -l app.kubernetes.io/name=clou
 ```bash
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
-curl -sSfL "https://github.com/pgEdge/pgedge-cnpg-dist/releases/download/v1.28.0/kubectl-cnpg-${OS}-${ARCH}.tar.gz" \
-  | sudo tar xz -C /usr/local/bin
+curl -sSfL "https://github.com/pgEdge/pgedge-cnpg-dist/releases/download/v1.28.0/kubectl-cnpg-${OS}-${ARCH}.tar.gz" -o /tmp/cnpg.tar.gz
+sudo tar xzf /tmp/cnpg.tar.gz -C /usr/local/bin
 ```
 
 ## Deploy
@@ -69,7 +69,7 @@ kubectl wait --for=condition=Ready pod -l cnpg.io/cluster=pgedge-n2 --timeout=30
 Check Spock subscriptions are active:
 
 ```bash
-kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT sub_name, status FROM spock.sub_show_status();"
+kubectl cnpg psql pgedge-n1 -- -d app -c "SELECT subscription_name, status FROM spock.sub_show_status();"
 ```
 
 ## Verify replication
