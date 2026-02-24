@@ -3,7 +3,7 @@
 Deploy distributed, active-active PostgreSQL on Kubernetes in under 5 minutes.
 
 > Want a guided walkthrough instead?
-> [Killercoda](https://killercoda.com/pgedge/scenario/distributed-postgres) (browser)
+> [Killercoda](https://killercoda.com/antthelimey/scenario/pgedge-helm) (browser)
 > | [Codespaces](https://codespaces.new/AntTheLimey/try-pgedge-helm?quickstart=1) (VS Code)
 > | [Local guide](https://github.com/AntTheLimey/try-pgedge-helm/blob/main/README.md#option-3-run-locally) (Docker + kind)
 

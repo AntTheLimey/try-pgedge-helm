@@ -19,7 +19,7 @@ Each step is a `helm upgrade`, so you watch the cluster evolve.
 
 Zero install — runs entirely in your browser on a pre-configured Kubernetes environment.
 
-[![Open in Killercoda](https://img.shields.io/badge/Open%20in-Killercoda-blue?logo=kubernetes)](https://killercoda.com/antthelimey/scenario/killercoda)
+[![Open in Killercoda](https://img.shields.io/badge/Open%20in-Killercoda-blue?logo=kubernetes)](https://killercoda.com/antthelimey/scenario/pgedge-helm)
 
 ### Option 2: GitHub Codespace
 
