@@ -10,9 +10,11 @@ curl -Lo /tmp/kind "https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-linux-amd64
 chmod +x /tmp/kind
 sudo mv /tmp/kind /usr/local/bin/kind
 
-# Install cnpg kubectl plugin
+# Install pgEdge cnpg kubectl plugin
 echo "Installing cnpg kubectl plugin..."
-curl -sSfL https://github.com/cloudnative-pg/cloudnative-pg/raw/main/hack/install-cnpg-plugin.sh | sh -s -- -b /usr/local/bin
+ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+curl -sSfL "https://github.com/pgEdge/pgedge-cnpg-dist/releases/download/v1.28.0/kubectl-cnpg-linux-${ARCH}.tar.gz" \
+  | tar xz -C /usr/local/bin
 
 # Add pgEdge Helm repo
 echo "Adding pgEdge Helm repo..."

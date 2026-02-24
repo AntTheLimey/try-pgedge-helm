@@ -14,18 +14,18 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/do
 echo "Waiting for cert-manager pods..."
 kubectl wait --for=condition=Available deployment --all -n cert-manager --timeout=120s
 
-echo "Installing CloudNativePG operator..."
-kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/releases/cnpg-1.25.1.yaml
-
-echo "Waiting for CNPG operator..."
-kubectl wait --for=condition=Available deployment -l app.kubernetes.io/name=cloudnative-pg -n cnpg-system --timeout=120s
-
-echo "Installing cnpg kubectl plugin..."
-curl -sSfL https://github.com/cloudnative-pg/cloudnative-pg/raw/main/hack/install-cnpg-plugin.sh | sh -s -- -b /usr/local/bin
-
 echo "Adding pgEdge Helm repo..."
 helm repo add pgedge https://pgedge.github.io/charts
 helm repo update
+
+echo "Installing pgEdge CloudNativePG operator..."
+helm install cnpg pgedge/cloudnative-pg --namespace cnpg-system --create-namespace
+kubectl wait --for=condition=Available deployment -l app.kubernetes.io/name=cloudnative-pg -n cnpg-system --timeout=120s
+
+echo "Installing cnpg kubectl plugin..."
+ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+curl -sSfL "https://github.com/pgEdge/pgedge-cnpg-dist/releases/download/v1.28.0/kubectl-cnpg-linux-${ARCH}.tar.gz" \
+  | tar xz -C /usr/local/bin
 
 touch /tmp/.background-done
 echo "Background setup complete!"

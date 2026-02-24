@@ -335,7 +335,7 @@ if [ "${CLUSTER_MODE:-kind}" = "existing" ]; then
       case "${answer2:-n}" in
         [yY]*)
           echo -e "  ${CYAN}Removing CloudNativePG operator...${RESET}"
-          kubectl delete -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/releases/cnpg-1.25.1.yaml 2>/dev/null || true
+          helm uninstall cnpg --namespace cnpg-system 2>/dev/null || true
           echo -e "  ${CYAN}Removing cert-manager...${RESET}"
           kubectl delete -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml 2>/dev/null || true
           ;;
@@ -348,7 +348,7 @@ if [ "${CLUSTER_MODE:-kind}" = "existing" ]; then
       echo ""
       echo -e "  ${BOLD}To clean up later:${RESET}"
       echo "    helm uninstall pgedge"
-      echo "    kubectl delete -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/releases/cnpg-1.25.1.yaml"
+      echo "    helm uninstall cnpg --namespace cnpg-system"
       echo "    kubectl delete -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml"
       ;;
   esac

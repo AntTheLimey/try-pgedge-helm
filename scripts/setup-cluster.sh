@@ -124,22 +124,25 @@ echo "Waiting for cert-manager..."
 wait_for_deployment "cert-manager" "--all" "cert-manager"
 
 echo ""
-echo "Installing CloudNativePG operator..."
-kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/releases/cnpg-1.25.1.yaml
-echo "Waiting for CNPG operator..."
-wait_for_deployment "cnpg-system" "-l app.kubernetes.io/name=cloudnative-pg" "CNPG operator"
-
-# Install cnpg kubectl plugin if missing
-if ! kubectl cnpg version &>/dev/null; then
-  echo ""
-  echo "Installing cnpg kubectl plugin..."
-  curl -sSfL https://github.com/cloudnative-pg/cloudnative-pg/raw/main/hack/install-cnpg-plugin.sh | sudo sh -s -- -b /usr/local/bin
-fi
-
-echo ""
 echo "Adding pgEdge Helm repo..."
 helm repo add pgedge https://pgedge.github.io/charts 2>/dev/null || true
 helm repo update
+
+echo ""
+echo "Installing pgEdge CloudNativePG operator..."
+helm install cnpg pgedge/cloudnative-pg --namespace cnpg-system --create-namespace 2>/dev/null || true
+echo "Waiting for CNPG operator..."
+wait_for_deployment "cnpg-system" "-l app.kubernetes.io/name=cloudnative-pg" "CNPG operator"
+
+# Install pgEdge cnpg kubectl plugin if missing
+if ! kubectl cnpg version &>/dev/null; then
+  echo ""
+  echo "Installing cnpg kubectl plugin..."
+  OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+  ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+  curl -sSfL "https://github.com/pgEdge/pgedge-cnpg-dist/releases/download/v1.28.0/kubectl-cnpg-${OS}-${ARCH}.tar.gz" \
+    | sudo tar xz -C /usr/local/bin
+fi
 
 echo ""
 echo "=== Cluster is ready! ==="
