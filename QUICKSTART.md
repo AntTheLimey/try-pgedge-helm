@@ -5,7 +5,7 @@ Deploy distributed, active-active PostgreSQL on Kubernetes in under 5 minutes.
 > Want a guided walkthrough instead?
 > [Killercoda](https://killercoda.com/pgedge/scenario/distributed-postgres) (browser)
 > | [Codespaces](https://codespaces.new/AntTheLimey/try-pgedge-helm?quickstart=1) (VS Code)
-> | [Local guide](./guide.sh) (Docker + kind)
+> | [Local guide](https://github.com/AntTheLimey/try-pgedge-helm/blob/main/README.md#option-3-run-locally) (Docker + kind)
 
 This guide uses pgEdge's curated distribution of the
 [CloudNativePG](https://cloudnative-pg.io/) operator — rebuilt from upstream
@@ -14,6 +14,8 @@ The operator, Helm charts, kubectl plugin, and backup plugins are all
 installable from the pgEdge Helm repo. See
 [pgEdge/pgedge-cnpg-dist](https://github.com/pgEdge/pgedge-cnpg-dist) for
 details.
+
+The pgEdge distribution is not affiliated with, endorsed by, or sponsored by the CloudNativePG project or the Cloud Native Computing Foundation.
 
 ## Prerequisites
 
