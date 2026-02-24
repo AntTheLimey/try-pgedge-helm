@@ -7,33 +7,47 @@ Deploy distributed, active-active PostgreSQL on Kubernetes in under 5 minutes.
 > | [Codespaces](https://codespaces.new/AntTheLimey/try-pgedge-helm?quickstart=1) (VS Code)
 > | [Local guide](./guide.sh) (Docker + kind)
 
+This guide uses pgEdge's curated distribution of the
+[CloudNativePG](https://cloudnative-pg.io/) operator — rebuilt from upstream
+source and published to the pgEdge registry (`ghcr.io/pgedge/cloudnative-pg`).
+The operator, Helm charts, kubectl plugin, and backup plugins are all
+installable from the pgEdge Helm repo. See
+[pgEdge/pgedge-cnpg-dist](https://github.com/pgEdge/pgedge-cnpg-dist) for
+details.
+
 ## Prerequisites
 
 A Kubernetes cluster with kubectl and Helm installed.
-
-### Install cert-manager and CloudNativePG operator
-
-```bash
-# cert-manager — handles TLS certificates for database connections
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
-kubectl wait --for=condition=Available deployment --all -n cert-manager --timeout=120s
-
-# CloudNativePG — manages PostgreSQL as a native Kubernetes resource
-kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/main/releases/cnpg-1.25.1.yaml
-kubectl wait --for=condition=Available deployment -l app.kubernetes.io/name=cloudnative-pg -n cnpg-system --timeout=120s
-```
-
-### Install the cnpg kubectl plugin
-
-```bash
-curl -sSfL https://github.com/cloudnative-pg/cloudnative-pg/raw/main/hack/install-cnpg-plugin.sh | sudo sh -s -- -b /usr/local/bin
-```
 
 ### Add the pgEdge Helm repo
 
 ```bash
 helm repo add pgedge https://pgedge.github.io/charts
 helm repo update
+```
+
+### Install cert-manager
+
+```bash
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+kubectl wait --for=condition=Available deployment --all -n cert-manager --timeout=120s
+```
+
+### Install the pgEdge CloudNativePG operator
+
+```bash
+helm install cnpg pgedge/cloudnative-pg \
+  --namespace cnpg-system --create-namespace
+kubectl wait --for=condition=Available deployment -l app.kubernetes.io/name=cloudnative-pg -n cnpg-system --timeout=120s
+```
+
+### Install the cnpg kubectl plugin
+
+```bash
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+curl -sSfL "https://github.com/pgEdge/pgedge-cnpg-dist/releases/download/v1.28.0/kubectl-cnpg-${OS}-${ARCH}.tar.gz" \
+  | sudo tar xz -C /usr/local/bin
 ```
 
 ## Deploy
