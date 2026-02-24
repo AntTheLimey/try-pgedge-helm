@@ -89,10 +89,21 @@ Each includes a `kind.yaml` for local testing.
 
 Want to see how the architecture evolves from a single primary through HA to multi-master? See [WALKTHROUGH.md](./WALKTHROUGH.md) for the progressive guide.
 
-### Documentation
+### Helm chart documentation
 
-- [pgEdge Helm Chart](https://github.com/pgedge/pgedge-helm) — full configuration reference
-- [pgEdge Documentation](https://docs.pgedge.com) — Spock replication, conflict resolution, operations
+| Topic | Description |
+|---|---|
+| [Configuration](https://github.com/pgEdge/pgedge-helm/blob/main/docs/configuration.md) | Full values reference, cluster spec options |
+| [Installation](https://github.com/pgEdge/pgedge-helm/blob/main/docs/install.md) | Detailed installation and prerequisites |
+| [Upgrading Postgres](https://github.com/pgEdge/pgedge-helm/blob/main/docs/usage/postgres_upgrades.md) | Minor/major version upgrades, image pinning |
+| [Adding Nodes](https://github.com/pgEdge/pgedge-helm/blob/main/docs/usage/adding_nodes.md) | Scale out with Spock or CNPG bootstrap |
+| [Backups](https://github.com/pgEdge/pgedge-helm/blob/main/docs/usage/backups.md) | Barman Cloud backups to S3, Azure, GCS |
+| [Monitoring](https://github.com/pgEdge/pgedge-helm/blob/main/docs/usage/monitoring.md) | Health checks and observability |
+| [Standby Instances](https://github.com/pgEdge/pgedge-helm/blob/main/docs/usage/standby.md) | Read replicas with automatic failover |
+| [Multi-cluster](https://github.com/pgEdge/pgedge-helm/blob/main/docs/multicluster.md) | Cross-region deployments, external nodes |
+| [Security](https://github.com/pgEdge/pgedge-helm/blob/main/docs/security.md) | Pod security standards, TLS certificates |
+
+- [pgEdge Documentation](https://docs.pgedge.com) — Spock replication, conflict resolution, tuning
 - [pgEdge Cloud](https://www.pgedge.com) — managed distributed PostgreSQL
 
 ## Cleanup
