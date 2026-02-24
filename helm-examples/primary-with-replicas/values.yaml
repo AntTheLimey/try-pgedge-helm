@@ -1,0 +1,59 @@
+# pgEdge Helm — Primary with 2 Read Replicas
+#
+# One node running 3 instances: 1 primary + 2 synchronous standby replicas.
+# CloudNativePG manages the primary/standby replication and automatic failover.
+#
+# Use this for: read-heavy workloads, single-region HA, staging environments.
+#
+# How it works:
+#   - Writes go to the primary instance (pgedge-n1-rw service)
+#   - Reads can be spread across replicas (pgedge-n1-ro service)
+#   - If the primary fails, CloudNativePG promotes a standby automatically
+#   - Synchronous replication means zero data loss on failover
+#
+# This is NOT multi-master — only the primary accepts writes.
+# For active-active writes, see multi-master/ or multi-master-with-replicas/.
+#
+# Resources: ~1.5GB RAM, 1.5 vCPU minimum (3 Postgres instances)
+#
+# Deploy with:
+#   helm install pgedge pgedge/pgedge -f values.yaml
+
+pgEdge:
+  appName: pgedge
+
+  # Single node — no Spock multi-master replication needed.
+  # CloudNativePG handles primary/standby replication within the node.
+  initSpock: false
+
+  nodes:
+    - name: n1
+      hostname: pgedge-n1-rw
+      # Per-node overrides go under clusterSpec and merge with the defaults below.
+      clusterSpec:
+        # 3 instances = 1 primary + 2 standby replicas.
+        # CloudNativePG handles leader election and automatic failover.
+        instances: 3
+        postgresql:
+          synchronous:
+            # "any" means any one of the standbys can acknowledge the write.
+            # Alternative: "first" requires acknowledgment in declaration order.
+            method: any
+
+            # At least 1 standby must confirm each write before it's committed.
+            # This gives you synchronous replication — zero data loss on failover.
+            # Trade-off: slightly higher write latency (~1-2ms).
+            number: 1
+
+            # "required" means Postgres will NOT proceed with writes if synchronous
+            # replication can't be maintained. Prevents data loss but writes block
+            # if both standbys are down.
+            # Use "preferred" if you'd rather have availability over durability.
+            dataDurability: required
+
+  # Default CloudNativePG Cluster spec.
+  clusterSpec:
+    storage:
+      # Each instance gets its own PVC. With 3 instances, that's 3 x 1Gi.
+      # Size appropriately for your dataset.
+      size: 1Gi

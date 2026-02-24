@@ -1,0 +1,107 @@
+# pgEdge Helm — 3-Node Multi-Master with 2 Read Replicas Each
+#
+# The full production topology. Three pgEdge nodes connected via Spock
+# active-active replication, each running 3 instances (1 primary + 2
+# synchronous standby replicas). This gives you:
+#
+#   - Multi-region writes: all 3 nodes accept writes simultaneously (Spock)
+#   - Read scaling: 2 read replicas per node for local read throughput (CloudNativePG)
+#   - HA within each region: automatic failover if a primary instance dies (CloudNativePG)
+#   - HA across regions: other nodes keep serving if an entire region goes down (Spock)
+#
+# How the two replication layers work together:
+#
+#   BETWEEN nodes (n1 ←→ n2 ←→ n3) — Spock:
+#     Active-active replication. All nodes accept writes.
+#     Conflicts resolved automatically (column-level last-update-wins).
+#     The init-spock job creates subscriptions between every pair of nodes.
+#     Replication is asynchronous — sub-second within a region, higher across regions.
+#
+#   WITHIN each node (primary ←→ standby) — CloudNativePG:
+#     Synchronous streaming replication. The primary streams WAL to 2 standbys.
+#     At least 1 standby must ack each write (synchronous.number: 1).
+#     If the primary pod dies, CloudNativePG promotes a standby automatically.
+#     Spock's delayed feedback and failover slots worker maintain replication
+#     across failovers and promotions.
+#
+# The result: writes survive both pod-level and region-level failures
+# with zero data loss within each region.
+#
+# Total instances: 9 (3 nodes x 3 instances each)
+# Total primaries: 3 (one per node, all accepting writes via Spock)
+# Total standbys: 6 (two per node, handling reads and ready for failover)
+#
+# Resources: ~4.5GB RAM, 4.5 vCPU minimum (9 Postgres instances)
+#
+# Deploy with:
+#   helm install pgedge pgedge/pgedge -f values.yaml
+
+pgEdge:
+  appName: pgedge
+
+  # The init-spock job runs as a post-install/post-upgrade Helm hook.
+  # It creates Spock nodes and wires subscriptions between all 3 nodes.
+  # See multi-master/values.yaml for detailed comments on what this does.
+  initSpock: true
+
+  nodes:
+    # Node n1 — multi-master primary in "region 1"
+    # 3 instances: 1 primary (read-write) + 2 synchronous standby (read-only)
+    - name: n1
+      hostname: pgedge-n1-rw
+      clusterSpec:
+        instances: 3
+        postgresql:
+          synchronous:
+            method: any
+            number: 1
+            dataDurability: required
+
+    # Node n2 — multi-master primary in "region 2"
+    - name: n2
+      hostname: pgedge-n2-rw
+      clusterSpec:
+        instances: 3
+        postgresql:
+          synchronous:
+            method: any
+            number: 1
+            dataDurability: required
+
+    # Node n3 — multi-master primary in "region 3"
+    - name: n3
+      hostname: pgedge-n3-rw
+      clusterSpec:
+        instances: 3
+        postgresql:
+          synchronous:
+            method: any
+            number: 1
+            dataDurability: required
+
+  # Default CloudNativePG Cluster spec applied to all nodes.
+  # The chart's built-in defaults already configure Spock parameters:
+  #   - spock.conflict_resolution: last_update_wins
+  #   - spock.enable_ddl_replication: on
+  #   - spock.save_resolutions: on
+  #   - wal_level: logical
+  #   - track_commit_timestamp: on
+  #   - shared_preload_libraries: [pg_stat_statements, snowflake, spock]
+  #
+  # The synchronous replication settings above are per-node overrides
+  # that tell CloudNativePG how to handle primary/standby within each node.
+  # Spock's inter-node replication is always asynchronous regardless of
+  # these settings.
+  clusterSpec:
+    storage:
+      # Each instance gets its own PVC. 9 instances = 9 x 1Gi.
+      # In production, size this based on your dataset + WAL retention.
+      size: 1Gi
+
+    # Uncomment to override Spock-specific Postgres parameters:
+    # postgresql:
+    #   parameters:
+    #     spock.conflict_resolution: "last_update_wins"
+    #     spock.conflict_log_level: "LOG"  # DEBUG is the default, LOG is less noisy
+    #     spock.enable_ddl_replication: "on"
+    #     spock.save_resolutions: "on"

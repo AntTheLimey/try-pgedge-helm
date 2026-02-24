@@ -1,0 +1,19 @@
+# kind cluster config — 3-Node Multi-Master
+#
+# Control-plane + 3 workers so each pgEdge node can land on a
+# separate kind worker (simulates multi-region/multi-AZ placement).
+#
+# Create with:
+#   kind create cluster --config kind.yaml
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: multi-master
+nodes:
+  - role: control-plane
+  - role: worker
+  - role: worker
+  - role: worker
+networking:
+  serviceSubnet: "10.21.0.0/16"
+  podSubnet: "10.20.0.0/16"

@@ -1,0 +1,36 @@
+# pgEdge Helm — Single Primary
+#
+# The simplest possible deployment. One Postgres node, one instance, no replication.
+# Use this for: dev/test, CI pipelines, local experimentation, kicking the tyres.
+#
+# What you get:
+#   - pgEdge Enterprise Postgres 17 with Spock extension installed (but inactive)
+#   - Single primary accepting reads and writes via pgedge-n1-rw service
+#   - No HA, no failover, no replication of any kind
+#   - cert-manager handles TLS certificates automatically
+#
+# Resources: ~512MB RAM, 0.5 vCPU minimum
+#
+# Deploy with:
+#   helm install pgedge pgedge/pgedge -f values.yaml
+#
+# Graduate to primary-with-replicas/ when you need read scaling or failover.
+# Graduate to multi-master/ when you need active-active writes.
+
+pgEdge:
+  appName: pgedge
+
+  # With only one node, there's nothing for Spock to replicate.
+  # Skip the init-spock job entirely — saves ~15s on startup.
+  initSpock: false
+
+  nodes:
+    - name: n1
+      hostname: pgedge-n1-rw
+
+  # Default CloudNativePG Cluster spec applied to all nodes.
+  # instances defaults to 1 (from the chart defaults), so this is a single primary.
+  clusterSpec:
+    storage:
+      # 1Gi is fine for dev/test. Bump to 10Gi+ for real data.
+      size: 1Gi

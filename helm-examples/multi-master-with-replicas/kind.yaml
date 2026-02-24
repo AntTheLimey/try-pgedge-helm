@@ -1,0 +1,21 @@
+# kind cluster config — 3-Node Multi-Master with Replicas
+#
+# Control-plane + 4 workers. With 9 Postgres instances total, you want
+# enough kind nodes to spread the load. This is a heavy config for a
+# laptop — make sure Docker has at least 6GB RAM allocated.
+#
+# Create with:
+#   kind create cluster --config kind.yaml
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: multi-master-with-replicas
+nodes:
+  - role: control-plane
+  - role: worker
+  - role: worker
+  - role: worker
+  - role: worker
+networking:
+  serviceSubnet: "10.21.0.0/16"
+  podSubnet: "10.20.0.0/16"

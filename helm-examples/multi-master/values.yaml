@@ -1,0 +1,103 @@
+# pgEdge Helm — 3-Node Multi-Master Cluster
+#
+# Three pgEdge nodes, each running a single Postgres instance, connected
+# via Spock active-active replication. Every node accepts reads AND writes.
+#
+# Use this for: active-active writes across regions, low-latency global reads,
+# applications that need write availability in multiple locations.
+#
+# How it works:
+#   - Each node is an independent primary — all 3 accept writes simultaneously
+#   - The init-spock job runs automatically after helm install/upgrade:
+#       1. Creates a Spock node on each Postgres instance
+#       2. Creates subscriptions between every pair of nodes (n1↔n2, n1↔n3, n2↔n3)
+#       3. Configures replication sets: {default, default_insert_only, ddl_sql}
+#   - Spock replicates changes between nodes asynchronously
+#   - Conflicts resolved automatically (column-level last-update-wins, configurable)
+#   - If one node goes down, the other two keep serving reads and writes
+#   - No standby replicas within each node — for that, see multi-master-with-replicas/
+#
+# In production, these 3 nodes would typically be in different regions or
+# availability zones. On a local kind cluster, they all run on the same machine
+# but the replication topology is identical.
+#
+# Resources: ~1.5GB RAM, 1.5 vCPU minimum (3 separate Postgres instances)
+#
+# Deploy with:
+#   helm install pgedge pgedge/pgedge -f values.yaml
+
+pgEdge:
+  appName: pgedge
+
+  # The init-spock job runs as a post-install/post-upgrade Helm hook.
+  # It automatically:
+  #   - Waits for all CloudNativePG clusters to reach healthy state
+  #   - Creates a 'pgedge' replication user on each node
+  #   - Registers each node with Spock (spock.node_create)
+  #   - Creates cross-subscriptions between every pair of nodes (spock.sub_create)
+  #
+  # In multi-cluster deployments (nodes across different K8s clusters),
+  # only set this to true on the LAST cluster deployed — the init job
+  # needs all nodes reachable to wire subscriptions.
+  initSpock: true
+
+  nodes:
+    # Each node becomes a separate CloudNativePG Cluster resource.
+    # The hostname is the K8s service name for the read-write endpoint.
+    # Spock uses this hostname for replication DSN connections between nodes.
+
+    # Node n1 — primary in "region 1"
+    - name: n1
+      hostname: pgedge-n1-rw
+
+    # Node n2 — primary in "region 2"
+    - name: n2
+      hostname: pgedge-n2-rw
+
+    # Node n3 — primary in "region 3"
+    - name: n3
+      hostname: pgedge-n3-rw
+
+    # With no per-node clusterSpec override, each node uses the defaults below.
+    # instances defaults to 1, so each node runs a single primary — pure multi-master.
+    #
+    # Spock handles replication BETWEEN nodes (active-active, asynchronous).
+    # CloudNativePG handles replication WITHIN a node (primary/standby, synchronous).
+    # With instances: 1, there's nothing for CloudNativePG to replicate within the
+    # node — Spock does all the heavy lifting.
+
+  # Default CloudNativePG Cluster spec applied to all nodes.
+  # The chart's built-in defaults (values.yaml) already configure:
+  #   - imageName: ghcr.io/pgedge/pgedge-postgres:17-spock5-standard
+  #   - bootstrap.initdb.postInitApplicationSQL: [CREATE EXTENSION spock]
+  #   - shared_preload_libraries: [pg_stat_statements, snowflake, spock]
+  #   - wal_level: logical (required for Spock)
+  #   - track_commit_timestamp: on (required for conflict resolution)
+  #   - spock.conflict_resolution: last_update_wins
+  #   - spock.enable_ddl_replication: on
+  #   - spock.save_resolutions: on
+  #
+  # You only need to override what's different from the defaults.
+  clusterSpec:
+    storage:
+      # Each node gets its own PVC. 3 nodes = 3 x 1Gi.
+      size: 1Gi
+
+    # Uncomment to override Spock-specific Postgres parameters:
+    # postgresql:
+    #   parameters:
+    #     # Change conflict resolution strategy. Options:
+    #     #   last_update_wins (default) — most recent write wins, based on commit timestamp
+    #     #   first_update_wins — first write wins, later conflicting writes are discarded
+    #     #   error — raise an error on conflict (manual resolution required)
+    #     spock.conflict_resolution: "last_update_wins"
+    #
+    #     # Log level for conflict events. Set to LOG or WARNING in production
+    #     # to reduce noise. DEBUG is useful during initial testing.
+    #     spock.conflict_log_level: "DEBUG"
+    #
+    #     # Enable DDL replication — schema changes on one node propagate to all.
+    #     spock.enable_ddl_replication: "on"
+    #
+    #     # Persist conflict resolution outcomes for auditing.
+    #     spock.save_resolutions: "on"
