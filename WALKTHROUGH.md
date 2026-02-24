@@ -14,6 +14,15 @@ Each step is a `helm upgrade`, so you'll see the cluster evolve in real time.
 
 Click the **Run** button on any code block to execute it directly in the terminal.
 
+> **Prefer a guided terminal experience?** Instead of clicking through
+> Runme, run the interactive guide script:
+>
+> ```bash
+> ./guide.sh
+> ```
+>
+> It walks you through the same steps with explanations and prompts.
+
 ---
 
 ## Step 1: Set Up the Cluster
